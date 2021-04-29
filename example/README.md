@@ -1,6 +1,6 @@
-# flutter_animation_set_example
+# example
 
-Demonstrates how to use the flutter_animation_set plugin.
+A new Flutter project.
 
 ## Getting Started
 

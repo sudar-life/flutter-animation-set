@@ -13,9 +13,9 @@ enum AnimationType {
 
 class AnimatorSet extends StatefulWidget {
   AnimatorSet({
-    Key key,
+    Key? key,
     this.debug = false,
-    this.child,
+    required this.child,
     this.animatorSet = const <Animator>[],
     this.animationType = AnimationType.repeat,
   })  : assert(child != null),
@@ -36,8 +36,8 @@ class AnimatorSet extends StatefulWidget {
 class AnimatorSetState extends State<AnimatorSet>
     with SingleTickerProviderStateMixin {
   int _duration = 0; //时间
-  AnimationController _controller;
-  AnimationType _animationType;
+  AnimationController? _controller;
+  AnimationType? _animationType;
 
   @override
   void initState() {
@@ -46,7 +46,7 @@ class AnimatorSetState extends State<AnimatorSet>
     _animationType = widget.animationType;
 
     for (var anim in widget.animatorSet) {
-      _duration += anim.duration;
+      _duration += anim.duration!;
     }
 
     _controller = AnimationController(
@@ -59,14 +59,14 @@ class AnimatorSetState extends State<AnimatorSet>
   }
 
   void initAnimation() {
-    _controller
+    _controller!
       ..addListener(() {})
       ..addStatusListener((AnimationStatus status) {
         if (_animationType == AnimationType.reverse) {
           if (status == AnimationStatus.completed) {
-            _controller.reverse();
+            _controller!.reverse();
           } else if (status == AnimationStatus.dismissed) {
-            _controller.forward();
+            _controller!.forward();
           }
         }
       });
@@ -74,9 +74,9 @@ class AnimatorSetState extends State<AnimatorSet>
 
   void startAnimation() {
     if (_animationType == AnimationType.repeat) {
-      _controller.repeat();
+      _controller!.repeat();
     } else {
-      _controller.forward();
+      _controller!.forward();
     }
   }
 
@@ -92,7 +92,7 @@ class AnimatorSetState extends State<AnimatorSet>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller!.dispose();
     super.dispose();
   }
 }
@@ -101,25 +101,43 @@ class AnimatedLogo extends StatelessWidget {
   ///opacityNotify：监听透明度变化，将正在变化的动画值作为opacityValue
   ///opacity：透明度动画集合
   ///opacityValue：最终显示的透明度
-  List<ValueNotifier<double>> opacityNotify = List()..length = 16;
-  List<Animation<double>> opacity = List()..length = 16;
-  double opacityValue;
+  List<ValueNotifier<double>> opacityNotify =
+      List<ValueNotifier<double>>.filled(16, ValueNotifier(0));
+  List<Animation<double>?> opacity = [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ];
+  late double opacityValue;
 
-  Animation<double> width;
-  Animation<double> height;
-  Animation<EdgeInsets> padding;
-  Animation<BorderRadius> borderRadius;
-  Animation<Color> color;
-  List<Animation<double>> scaleX = [null, null, null, null];
-  List<Animation<double>> scaleY = [null, null, null, null];
-  List<Animation<double>> rotateX = [null, null, null, null];
-  List<Animation<double>> rotateY = [null, null, null, null];
-  List<Animation<double>> rotateZ = [null, null, null, null];
-  List<Animation<double>> transX = [null, null, null, null];
-  List<Animation<double>> transY = [null, null, null, null];
+  Animation<double>? width;
+  Animation<double>? height;
+  Animation<EdgeInsets>? padding;
+  Animation<BorderRadius>? borderRadius;
+  Animation<Color?>? color;
+  List<Animation<double>?> scaleX = [null, null, null, null];
+  List<Animation<double>?> scaleY = [null, null, null, null];
+  List<Animation<double>?> rotateX = [null, null, null, null];
+  List<Animation<double>?> rotateY = [null, null, null, null];
+  List<Animation<double>?> rotateZ = [null, null, null, null];
+  List<Animation<double>?> transX = [null, null, null, null];
+  List<Animation<double>?> transY = [null, null, null, null];
 
   AnimatedLogo({
-    Key key,
+    Key? key,
     this.debug,
     this.child,
     this.controller,
@@ -130,22 +148,22 @@ class AnimatedLogo extends StatelessWidget {
     this._initOpacityListener();
   }
 
-  final bool debug;
-  final Widget child;
-  final Animation<double> controller;
-  final List<Animator> animatorSet;
-  final int duration;
+  final bool? debug;
+  final Widget? child;
+  final Animation<double>? controller;
+  final List<Animator>? animatorSet;
+  final int? duration;
 
   ///解析交错动画
   void _parseAnimation() {
     double start = 0.0;
     double end = 0.0;
 
-    for (var anim in animatorSet) {
-      start = anim.delay / duration + end; //延时+上次结束
-      end = start + anim.duration / duration; //上次开始+时长
+    for (var anim in animatorSet!) {
+      start = anim.delay! / duration! + end; //延时+上次结束
+      end = start + anim.duration! / duration!; //上次开始+时长
 
-      if (debug) {
+      if (debug!) {
         print("duration=" +
             duration.toString() +
             " anim.duration=" +
@@ -162,7 +180,7 @@ class AnimatedLogo extends StatelessWidget {
         ///并行动画处理
         List<Animator> serialList = anim.serialList;
         serialList.forEach((Animator anim2) {
-          double tempStart = start + anim.delay / duration;
+          double tempStart = start + anim.delay! / duration!;
           _parseAnimation2(anim2, tempStart, end);
         });
       } else {
@@ -188,7 +206,7 @@ class AnimatedLogo extends StatelessWidget {
       if (opacityNotify[i] != null) {
         ///监听透明度变化
         opacityNotify[i].addListener(() {
-          opacityValue = opacity[i].value;
+          opacityValue = opacity[i]!.value;
         });
       }
     }
@@ -198,11 +216,11 @@ class AnimatedLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       builder: _buildAnimationWidget, // 动画变化时调用这个函数
-      animation: controller, // 要执行的动画
+      animation: controller!, // 要执行的动画
     );
   }
 
-  Widget _buildAnimationWidget(BuildContext context, Widget child) {
+  Widget _buildAnimationWidget(BuildContext context, Widget? child) {
     return Container(
       padding: padding?.value ?? EdgeInsets.all(0), // 内边距动画
       child: Transform(
@@ -254,7 +272,7 @@ class AnimatedLogo extends StatelessWidget {
 
   ///解析动画每帧动画
   void _parseAnimationItem(Animator anim, double start, double end) {
-    if (debug) {
+    if (debug!) {
       print("anim = " +
           anim.toString() +
           "| anim.from = " +
@@ -273,11 +291,11 @@ class AnimatedLogo extends StatelessWidget {
         end: anim.to,
       ).animate(
         CurvedAnimation(
-          parent: controller,
+          parent: controller!,
           curve: Interval(
             start,
             end,
-            curve: anim.curve,
+            curve: anim.curve!,
           ),
         ),
       );
@@ -287,11 +305,11 @@ class AnimatedLogo extends StatelessWidget {
         end: anim.to,
       ).animate(
         CurvedAnimation(
-          parent: controller,
+          parent: controller!,
           curve: Interval(
             start,
             end,
-            curve: anim.curve,
+            curve: anim.curve!,
           ),
         ),
       );
@@ -301,34 +319,34 @@ class AnimatedLogo extends StatelessWidget {
         end: anim.to,
       ).animate(
         CurvedAnimation(
-          parent: controller,
+          parent: controller!,
           curve: Interval(
             start,
             end,
-            curve: anim.curve,
+            curve: anim.curve!,
           ),
         ),
       );
     } else if (anim is O) {
       for (int i = 0; i < opacity.length; i++) {
         if (opacity[i] == null) {
-          opacityNotify[i] = ValueNotifier(anim.from);
+          opacityNotify[i] = ValueNotifier(anim.from!);
           opacity[i] = Tween<double>(
             begin: anim.from,
             end: anim.to,
           ).animate(
             CurvedAnimation(
-              parent: controller,
+              parent: controller!,
               curve: Interval(
                 start,
                 end,
-                curve: anim.curve,
+                curve: anim.curve!,
               ),
             ),
           )..addListener(() {
               ///由于在播放完成后会回到初始值，需要过滤掉
-              if (opacity[i].value != anim.from) {
-                opacityNotify[i].value = opacity[i].value;
+              if (opacity[i]!.value != anim.from) {
+                opacityNotify[i].value = opacity[i]!.value;
               }
             });
           break;
@@ -342,11 +360,11 @@ class AnimatedLogo extends StatelessWidget {
             end: anim.to,
           ).animate(
             CurvedAnimation(
-              parent: controller,
+              parent: controller!,
               curve: Interval(
                 start,
                 end,
-                curve: anim.curve,
+                curve: anim.curve!,
               ),
             ),
           );
@@ -361,11 +379,11 @@ class AnimatedLogo extends StatelessWidget {
             end: anim.to,
           ).animate(
             CurvedAnimation(
-              parent: controller,
+              parent: controller!,
               curve: Interval(
                 start,
                 end,
-                curve: anim.curve,
+                curve: anim.curve!,
               ),
             ),
           );
@@ -380,11 +398,11 @@ class AnimatedLogo extends StatelessWidget {
             end: anim.to,
           ).animate(
             CurvedAnimation(
-              parent: controller,
+              parent: controller!,
               curve: Interval(
                 start,
                 end,
-                curve: anim.curve,
+                curve: anim.curve!,
               ),
             ),
           );
@@ -399,11 +417,11 @@ class AnimatedLogo extends StatelessWidget {
             end: anim.to,
           ).animate(
             CurvedAnimation(
-              parent: controller,
+              parent: controller!,
               curve: Interval(
                 start,
                 end,
-                curve: anim.curve,
+                curve: anim.curve!,
               ),
             ),
           );
@@ -418,11 +436,11 @@ class AnimatedLogo extends StatelessWidget {
             end: anim.to,
           ).animate(
             CurvedAnimation(
-              parent: controller,
+              parent: controller!,
               curve: Interval(
                 start,
                 end,
-                curve: anim.curve,
+                curve: anim.curve!,
               ),
             ),
           );
@@ -437,11 +455,11 @@ class AnimatedLogo extends StatelessWidget {
             end: anim.to,
           ).animate(
             CurvedAnimation(
-              parent: controller,
+              parent: controller!,
               curve: Interval(
                 start,
                 end,
-                curve: anim.curve,
+                curve: anim.curve!,
               ),
             ),
           );
@@ -456,11 +474,11 @@ class AnimatedLogo extends StatelessWidget {
             end: anim.to,
           ).animate(
             CurvedAnimation(
-              parent: controller,
+              parent: controller!,
               curve: Interval(
                 start,
                 end,
-                curve: anim.curve,
+                curve: anim.curve!,
               ),
             ),
           );
@@ -473,11 +491,11 @@ class AnimatedLogo extends StatelessWidget {
         end: anim.to,
       ).animate(
         CurvedAnimation(
-          parent: controller,
+          parent: controller!,
           curve: Interval(
             start,
             end,
-            curve: anim.curve,
+            curve: anim.curve!,
           ),
         ),
       );
@@ -487,11 +505,11 @@ class AnimatedLogo extends StatelessWidget {
         end: anim.to,
       ).animate(
         CurvedAnimation(
-          parent: controller,
+          parent: controller!,
           curve: Interval(
             start,
             end,
-            curve: anim.curve,
+            curve: anim.curve!,
           ),
         ),
       );
